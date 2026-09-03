@@ -67,9 +67,9 @@ class VolatilityBreakoutExitModel(VolatilityBasedExitModel):
         
         return breakout, vol_change, direction
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate volatility breakout exit signals"""
         exit_signals = []
         
@@ -178,9 +178,9 @@ class VolatilityRegimeExitModel(VolatilityBasedExitModel):
         
         return False, 'no_change'
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate volatility regime exit signals"""
         exit_signals = []
         
@@ -280,9 +280,9 @@ class VolatilityMeanReversionExitModel(VolatilityBasedExitModel):
         
         return reversion, z_score
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate volatility mean reversion exit signals"""
         exit_signals = []
         
@@ -382,9 +382,9 @@ class VolatilityClusteringExitModel(VolatilityBasedExitModel):
         
         return clustering, clustering_ratio
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate volatility clustering exit signals"""
         exit_signals = []
         

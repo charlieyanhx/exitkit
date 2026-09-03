@@ -25,16 +25,20 @@ class ExitSignalModel(ABC):
         self.logger = logging.getLogger(__name__)
     
     @abstractmethod
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """
         Generate exit signals for open positions
         
         Args:
-            W_t: Current feature window
-            open_positions: List of open positions to evaluate
-            market_data: Current market data
+            open_positions: Positions to evaluate for exit
+            market_data: Current market data. Fields a model needs are
+                required - missing ones raise MissingMarketData rather than
+                defaulting to a fabricated value.
+            W_t: Optional feature window. No model in this package reads it
+                today; it is kept so window-aware models can be added without
+                changing the interface.
             
         Returns:
             List of exit SignalOutput objects

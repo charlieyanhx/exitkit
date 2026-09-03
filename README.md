@@ -1,20 +1,25 @@
 # exitkit
 
-A catalogue of position-exit policies. Twenty-seven models in six families behind one interface,
-so exit policy is something you swap and compare rather than hardcode.
+**Swap your exit policy the way you swap your entry signal.**
 
-Entry logic is well served by open-source backtesting libraries. Exit logic usually is not — most
-ship a fixed stop and a fixed target and leave the rest to you.
+[![tests](https://github.com/charlieyanhx/exitkit/actions/workflows/tests.yml/badge.svg)](https://github.com/charlieyanhx/exitkit/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/exitkit.svg)](https://pypi.org/project/exitkit/)
+[![Python](https://img.shields.io/pypi/pyversions/exitkit.svg)](https://pypi.org/project/exitkit/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+Twenty-seven exit models in six families behind one interface. Entry logic is well served by
+open-source backtesting libraries; exit logic usually is not — most ship one stop and one target
+and leave the rest to you.
 
 ```bash
 pip install exitkit
 ```
 
-## Use
+## Thirty seconds
 
 ```python
-from exitkit import StopLossExitModel, Position, SignalOutput, WindowTensor
 import time
+from exitkit import StopLossExitModel, Position, SignalOutput
 
 position = Position(
     position_id="p1",
@@ -25,17 +30,19 @@ position = Position(
 )
 
 model = StopLossExitModel(stop_loss_pct=0.02, trailing=True)
-signals = model.generate_exit_signals(
-    WindowTensor(), [position],
-    {"spot_price": 391.0, "implied_vol": 0.21},
-)
 
-for s in signals:
-    print(s.exit_reason, s.meta["loss_pct"])   # stop_loss -0.0225
+for signal in model.generate_exit_signals(
+    [position], {"spot_price": 391.0, "implied_vol": 0.21}
+):
+    print(signal.exit_reason, signal.meta["loss_pct"], signal.confidence)
 ```
 
-Every model implements `generate_exit_signals(window, open_positions, market_data)` and returns
-`SignalOutput` objects carrying the position they close and why.
+```
+stop_loss -0.0225 1.0
+```
+
+Every model takes `(positions, market_data)` and returns `SignalOutput` objects carrying the
+position they close and why. Swapping policy is swapping the constructor.
 
 ## The six families
 
@@ -48,25 +55,24 @@ Every model implements `generate_exit_signals(window, open_positions, market_dat
 | **signal_reversal** | reversal, strength decay, divergence, consistency |
 | **convergence** | single-target (three variants) and multi-target |
 
-`exitkit.FAMILIES` maps each family name to its classes, which is how the test suite exercises all
-twenty-seven uniformly.
-
-## Missing market data raises. It is never defaulted.
-
-This is the design decision the package exists to enforce, and it is the defect it was extracted
-with. Every model read its inputs like this:
-
 ```python
-current_price = market_data.get('spot_price', 350.0)
-current_vol   = market_data.get('implied_vol', 0.2)
+from exitkit import FAMILIES
+
+for name, models in FAMILIES.items():
+    print(name, [m.__name__ for m in models])
 ```
 
-Thirty-six such sites. A caller who omitted a field did not get an error — they got an exit
-decision computed against a fabricated price. The volatility one is quieter still: it appears in
-ratio denominators, so a missing value produces a vol ratio of exactly `1.0`, which reads as "no
-change" rather than as "no data".
+`FAMILIES` is also how the test suite exercises every model uniformly — adding a model puts it
+under the whole battery automatically.
 
-Inputs are now checked at the boundary and name what is missing:
+## Missing market data raises
+
+The one opinion this library holds. Required fields are checked at the boundary and name what
+is absent:
+
+```python
+model.generate_exit_signals([position], {"implied_vol": 0.21})
+```
 
 ```
 MissingMarketData: market data is missing 'spot_price'; got: implied_vol.
@@ -74,20 +80,47 @@ Exit models require this field - supply it rather than letting a default stand
 in, which silently fabricates the decision.
 ```
 
-`None`, `NaN` and unparseable values count as missing; `0.0` does not.
+`None`, `NaN` and unparseable values count as missing. `0.0` does not.
 
-## Two more defects found while testing
+## Where this fits
+
+`exitkit` decides *when to close*. It does not fetch data, route orders, or run a backtest loop —
+hand it positions and market data from whatever you already use.
+
+| If you want | Use |
+|---|---|
+| A full backtest engine | [backtesting.py](https://github.com/kernc/backtesting.py), [vectorbt](https://github.com/polakowo/vectorbt) |
+| One trailing stop, built in | `backtesting.py`'s `TrailingStrategy` |
+| Intrabar stop/target fills | [wickra-backtest](https://pypi.org/project/wickra-backtest/) |
+| Many exit policies to compare | **exitkit** |
+
+`SignalOutput` is a plain dataclass, so wiring it into an existing engine is a translation layer,
+not an adoption.
+
+## Why this exists
+
+The catalogue was extracted from a private options-research program. Writing the test suite
+surfaced three defects that had survived in running code, all fixed here with regression tests
+named after them.
+
+**Thirty-six fabricated market-data fallbacks.** Every model read its inputs as
+`market_data.get('spot_price', 350.0)` or `.get('implied_vol', 0.2)`. A caller who omitted a
+field did not get an error — they got an exit decision computed against an invented price. The
+volatility default is quieter still: it appears in ratio denominators, so a missing value
+produces a vol ratio of exactly `1.0`, which reads as "no change" rather than "no data". That is
+why the boundary check above exists.
 
 **Time-based exits could not fire.** `check_time_exit` read `position.get_holding_hours()`, which
-divided `holding_period` — a field only ever assigned inside `Position.update_pnl()`. A model that
-did not first mark the position saw zero hours held, so a position held nine hours against a
-two-hour limit did not exit. Holding time is now derived from `entry_time` rather than depending on
-another call's side effect. A derived quantity should not require someone else's bookkeeping.
+divided `holding_period` — a field only ever assigned inside `Position.update_pnl()`. A model
+that did not first mark the position saw zero hours held, so a position held nine hours against a
+two-hour limit did not exit. Holding time is now derived from `entry_time`; a derived quantity
+should not depend on another call's side effect.
 
-**`MarketHoursExitModel` had never run.** The module called `time.time()` without importing `time`,
-so every invocation raised `NameError`. Fixed, and covered.
+**`MarketHoursExitModel` had never run.** The module called `time.time()` without importing
+`time`, so every invocation raised `NameError`.
 
-Both have regression tests named after the defect.
+The feature-window argument was also removed from the required position in the signature: it was
+the first parameter of every model and not one of them read it.
 
 ## Tests
 
@@ -96,17 +129,10 @@ pip install -e ".[test]"
 pytest -q
 ```
 
-128 tests. Four of them are parametrized across all twenty-seven models, so every model must
-construct, must refuse to decide on empty market data, must run on complete data, and must return
-nothing when there are no positions. Adding a model to `FAMILIES` puts it under all four
-automatically.
-
-## Scope
-
-Exit decisions only. No data feed, no order routing, no backtest loop — hand it positions and
-market data from whatever you already use. `SignalOutput` is a plain dataclass, so wiring it into
-an existing engine is a translation layer, not an adoption.
+130 tests. Four are parametrized across all twenty-seven models, so each must construct, refuse
+to decide on empty market data, run on complete data, and return nothing when there are no
+positions.
 
 ## Licence
 
-MIT.
+MIT. See [CHANGELOG.md](CHANGELOG.md) and [CONTRIBUTING.md](CONTRIBUTING.md).

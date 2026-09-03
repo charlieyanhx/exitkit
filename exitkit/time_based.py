@@ -31,9 +31,9 @@ class FixedTimeExitModel(TimeBasedExitModel):
         super().__init__("FixedTimeExit", max_holding_hours)
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate fixed time exit signals"""
         exit_signals = []
         
@@ -96,9 +96,9 @@ class TimeDecayExitModel(TimeBasedExitModel):
         
         return time_decay
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate time decay exit signals"""
         exit_signals = []
         
@@ -187,9 +187,9 @@ class AdaptiveTimeExitModel(TimeBasedExitModel):
         
         return adaptive_holding
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate adaptive time exit signals"""
         exit_signals = []
         
@@ -269,9 +269,9 @@ class MarketHoursExitModel(TimeBasedExitModel):
         dt = datetime.datetime.fromtimestamp(current_time)
         return dt.weekday() >= 5  # Saturday = 5, Sunday = 6
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate market hours exit signals"""
         exit_signals = []
         current_time = market_data.get('timestamp', time.time())
@@ -359,9 +359,9 @@ class PerformanceTimeExitModel(TimeBasedExitModel):
         
         return adjusted_time
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate performance-based time exit signals"""
         exit_signals = []
         

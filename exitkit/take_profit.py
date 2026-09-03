@@ -44,9 +44,9 @@ class TakeProfitExitModel(PnLBasedExitModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate take-profit exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -113,9 +113,9 @@ class PartialTakeProfitExitModel(TakeProfitExitModel):
         self.logger.info(f"Initialized partial take-profit with ratio={partial_ratio:.1%}, "
                         f"max_exits={max_partial_exits}")
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate partial take-profit exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -219,9 +219,9 @@ class AdaptiveTakeProfitExitModel(TakeProfitExitModel):
         
         return adaptive_take_profit
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate adaptive take-profit exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -290,9 +290,9 @@ class ScalingTakeProfitExitModel(TakeProfitExitModel):
         self.logger.info(f"Initialized scaling take-profit with levels={take_profit_levels}, "
                         f"ratios={scaling_ratios}")
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate scaling take-profit exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -410,9 +410,9 @@ class MomentumTakeProfitExitModel(TakeProfitExitModel):
         
         return self.pnl_threshold
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate momentum-based take-profit exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')

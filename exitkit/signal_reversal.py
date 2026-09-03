@@ -37,9 +37,9 @@ class SignalReversalExitModel(SignalBasedExitModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate signal reversal exit signals"""
         exit_signals = []
         
@@ -133,9 +133,9 @@ class SignalStrengthDecayExitModel(SignalBasedExitModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate signal strength decay exit signals"""
         exit_signals = []
         
@@ -283,9 +283,9 @@ class SignalDivergenceExitModel(SignalBasedExitModel):
         
         return is_divergence, divergence
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate signal divergence exit signals"""
         exit_signals = []
         
@@ -397,9 +397,9 @@ class SignalConsistencyExitModel(SignalBasedExitModel):
         
         return low_consistency, consistency_ratio
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate signal consistency exit signals"""
         exit_signals = []
         

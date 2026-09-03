@@ -44,9 +44,9 @@ class StopLossExitModel(PnLBasedExitModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate stop-loss exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -171,9 +171,9 @@ class AdaptiveStopLossExitModel(StopLossExitModel):
         
         return adaptive_stop
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate adaptive stop-loss exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -251,9 +251,9 @@ class VolatilityStopLossExitModel(StopLossExitModel):
         
         return vol_breakout, vol_change
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate volatility-based stop-loss exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')
@@ -337,9 +337,9 @@ class TimeDecayStopLossExitModel(StopLossExitModel):
         
         return dynamic_stop
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate time-decay stop-loss exit signals"""
         exit_signals = []
         current_price = require(market_data, 'spot_price')

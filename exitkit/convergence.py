@@ -54,9 +54,9 @@ class ConvergenceExitModel(ExitSignalModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate convergence-based exit signals"""
         exit_signals = []
         
@@ -288,16 +288,16 @@ class MultiConvergenceExitModel(ExitSignalModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def generate_exit_signals(self, W_t: WindowTensor, 
-                             open_positions: List[Position],
-                             market_data: Dict) -> List[SignalOutput]:
+    def generate_exit_signals(self, open_positions: List[Position],
+                             market_data: Dict,
+                             W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate exit signals using all three convergence models"""
         all_exit_signals = []
         
         # Get signals from each convergence model
-        conv1_signals = self.conv1_model.generate_exit_signals(W_t, open_positions, market_data)
-        conv2_signals = self.conv2_model.generate_exit_signals(W_t, open_positions, market_data)
-        conv3_signals = self.conv3_model.generate_exit_signals(W_t, open_positions, market_data)
+        conv1_signals = self.conv1_model.generate_exit_signals(open_positions, market_data)
+        conv2_signals = self.conv2_model.generate_exit_signals(open_positions, market_data)
+        conv3_signals = self.conv3_model.generate_exit_signals(open_positions, market_data)
         
         # Combine signals with weights
         for signal in conv1_signals:
