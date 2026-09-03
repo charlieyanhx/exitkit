@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "exitkit"
+version = "0.1.0"
+description = "A catalogue of position-exit policies: stop-loss, take-profit, time, volatility, signal-reversal and convergence exits behind one interface."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [{ name = "Charlie Yan" }]
+keywords = ["trading", "backtesting", "exit", "stop-loss", "take-profit", "quant"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/charlieyanhx/exitkit"
+Issues = "https://github.com/charlieyanhx/exitkit/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["exitkit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

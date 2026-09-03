@@ -1,0 +1,66 @@
+"""Defects found while extracting this package. Each test is named for one."""
+import time
+
+import pytest
+
+from exitkit import (
+    FixedTimeExitModel,
+    MarketHoursExitModel,
+    Position,
+    SignalOutput,
+    WindowTensor,
+)
+
+
+def _position(held_hours):
+    return Position(
+        position_id="p1",
+        entry_time=time.time() - held_hours * 3600,
+        entry_signal=SignalOutput(direction=1, meta={"implied_vol": 0.2}),
+        entry_price=400.0,
+        quantity=10,
+    )
+
+
+def test_holding_hours_do_not_require_a_prior_mark():
+    """get_holding_hours returned holding_period/3600, and holding_period was
+    only assigned inside update_pnl(). A model that did not first mark the
+    position saw zero hours held."""
+    p = _position(held_hours=9.0)
+    assert p.get_holding_hours() == pytest.approx(9.0, abs=0.01)
+
+
+def test_time_exit_fires_without_an_explicit_mark(window, market):
+    """The consequence: a nine-hour position against a two-hour limit did not
+    exit, because nothing had populated holding_period."""
+    m = FixedTimeExitModel(max_holding_hours=2.0)
+    signals = m.generate_exit_signals(window, [_position(9.0)], market())
+    assert len(signals) == 1
+    assert signals[0].exit_reason == "time_limit"
+
+
+def test_time_exit_still_holds_inside_the_limit(window, market):
+    m = FixedTimeExitModel(max_holding_hours=8.0)
+    assert m.generate_exit_signals(window, [_position(1.0)], market()) == []
+
+
+def test_marking_a_position_agrees_with_the_derived_value():
+    p = _position(held_hours=3.0)
+    p.update_pnl(410.0)
+    assert p.get_holding_hours() == pytest.approx(3.0, abs=0.01)
+
+
+def test_market_hours_model_is_callable():
+    """MarketHoursExitModel raised NameError: name 'time' is not defined on
+    every call - the module used time.time() without importing time, so this
+    model had never run."""
+    m = MarketHoursExitModel()
+    out = m.generate_exit_signals(WindowTensor(), [], {"timestamp": time.time()})
+    assert out == []
+
+
+def test_market_hours_model_runs_against_a_position(window, market):
+    m = MarketHoursExitModel()
+    out = m.generate_exit_signals(window, [_position(1.0)],
+                                  market(timestamp=time.time()))
+    assert isinstance(out, list)
