@@ -25,7 +25,8 @@ classifiers = [
 dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
-test = ["pytest>=7.0"]
+backtesting = ["backtesting>=0.3"]
+test = ["pytest>=7.0", "backtesting>=0.3"]
 
 [project.urls]
 Homepage = "https://github.com/charlieyanhx/exitkit"

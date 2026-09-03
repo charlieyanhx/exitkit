@@ -31,6 +31,15 @@ research program with three pre-existing defects fixed.
 - **`momentum` fell back to `0.0`**, which is a meaningful value ("flat") rather than a
   gap. Both fields are now required.
 
+### Added (adapter)
+- `exitkit.adapters.backtesting_py.ExitMixin` — drive exits from exitkit policies inside a
+  [backtesting.py](https://github.com/kernc/backtesting.py) strategy, behind the
+  `backtesting` extra. Plus `examples/compare_exit_policies.py`.
+- `Position.get_holding_hours(now=None)` and `check_time_exit(position, now=None)` take the
+  clock to measure against. Time-based models now require `timestamp`, because a backtest
+  that measured holding time against the wall clock would age every position to the moment
+  the run started and fire every time-based exit immediately.
+
 ### Changed
 - `generate_exit_signals(positions, market_data, W_t=None)` — the feature window was
   previously the first required argument and no model read it.

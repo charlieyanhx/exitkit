@@ -73,7 +73,7 @@ class TakeProfitExitModel(PnLBasedExitModel):
                         'partial_ratio': self.partial_ratio,
                         'entry_price': position.entry_price,
                         'current_price': current_price,
-                        'holding_hours': position.get_holding_hours()
+                        'holding_hours': position.get_holding_hours(market_data.get('timestamp'))
                     }
                 )
                 exit_signals.append(exit_signal)
@@ -154,7 +154,7 @@ class PartialTakeProfitExitModel(TakeProfitExitModel):
                         'max_partial_exits': self.max_partial_exits,
                         'entry_price': position.entry_price,
                         'current_price': current_price,
-                        'holding_hours': position.get_holding_hours()
+                        'holding_hours': position.get_holding_hours(market_data.get('timestamp'))
                     }
                 )
                 exit_signals.append(exit_signal)
@@ -327,7 +327,7 @@ class ScalingTakeProfitExitModel(TakeProfitExitModel):
                             'total_levels': len(self.take_profit_levels),
                             'entry_price': position.entry_price,
                             'current_price': current_price,
-                            'holding_hours': position.get_holding_hours()
+                            'holding_hours': position.get_holding_hours(market_data.get('timestamp'))
                         }
                     )
                     exit_signals.append(exit_signal)

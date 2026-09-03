@@ -76,7 +76,7 @@ class StopLossExitModel(PnLBasedExitModel):
                         'entry_price': position.entry_price,
                         'current_price': current_price,
                         'trailing': self.trailing,
-                        'holding_hours': position.get_holding_hours()
+                        'holding_hours': position.get_holding_hours(market_data.get('timestamp'))
                     }
                 )
                 exit_signals.append(exit_signal)
@@ -324,9 +324,10 @@ class TimeDecayStopLossExitModel(StopLossExitModel):
         self.logger.info(f"Initialized time-decay stop-loss with initial={initial_stop_loss_pct:.1%}, "
                         f"decay_rate={time_decay_rate}, min={min_stop_loss_pct:.1%}")
     
-    def _calculate_time_decay_stop_loss(self, position: Position) -> float:
-        """Calculate time-decay adjusted stop loss"""
-        holding_hours = position.get_holding_hours()
+    def _calculate_time_decay_stop_loss(self, position: Position,
+                                        now: float) -> float:
+        """Calculate time-decay adjusted stop loss against the supplied clock."""
+        holding_hours = position.get_holding_hours(now)
         
         # Stop loss tightens over time
         time_factor = np.exp(-self.time_decay_rate * holding_hours / 24.0)  # Daily decay
@@ -348,7 +349,7 @@ class TimeDecayStopLossExitModel(StopLossExitModel):
             position.update_pnl(current_price)
             
             # Calculate time-decay adjusted stop loss
-            dynamic_stop = self._calculate_time_decay_stop_loss(position)
+            dynamic_stop = self._calculate_time_decay_stop_loss(position, require(market_data, 'timestamp'))
             pnl_pct = position.get_pnl_pct()
             
             # Exit if loss exceeds dynamic stop
@@ -364,8 +365,8 @@ class TimeDecayStopLossExitModel(StopLossExitModel):
                     meta={
                         'loss_pct': pnl_pct,
                         'dynamic_stop_pct': dynamic_stop,
-                        'holding_hours': position.get_holding_hours(),
-                        'time_factor': np.exp(-self.time_decay_rate * position.get_holding_hours() / 24.0),
+                        'holding_hours': position.get_holding_hours(market_data.get('timestamp')),
+                        'time_factor': np.exp(-self.time_decay_rate * holding_hours / 24.0),
                         'entry_price': position.entry_price,
                         'current_price': current_price
                     }

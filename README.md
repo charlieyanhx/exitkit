@@ -44,6 +44,43 @@ stop_loss -0.0225 1.0
 Every model takes `(positions, market_data)` and returns `SignalOutput` objects carrying the
 position they close and why. Swapping policy is swapping the constructor.
 
+## Works with backtesting.py
+
+```bash
+pip install exitkit[backtesting]
+```
+
+```python
+from backtesting import Backtest, Strategy
+from exitkit import StopLossExitModel, FixedTimeExitModel
+from exitkit.adapters.backtesting_py import ExitMixin
+
+class SmaCross(ExitMixin, Strategy):
+    exit_models = [StopLossExitModel(0.05), FixedTimeExitModel(24 * 30)]
+
+    def next(self):
+        self.apply_exits()          # close whatever the policy says to close
+        if crossover(self.s1, self.s2) and not self.position:
+            self.buy()
+```
+
+Same entry signal, six exit policies, on `backtesting.py`'s own sample data
+([`examples/compare_exit_policies.py`](examples/compare_exit_policies.py)):
+
+```
+exit policy           return %  trades  max DD %  Sharpe
+none (hold)              326.1       1     -65.3    0.47
+stop 2%                   47.6       8     -64.6    0.15
+stop 5%                  283.9       2     -65.3    0.44
+take profit 10%          187.5      10     -64.0    0.39
+time limit 30d           208.3      31     -22.3    0.68
+stop 5% + tp 10%         100.0      29     -28.3    0.49
+```
+
+One dataset and one entry rule, so read it as an illustration rather than a finding — but it
+is the comparison the library exists to make cheap. Holding time is measured against the
+**bar's** clock, not the wall clock, so a replay ages positions by simulated time.
+
 ## The six families
 
 | Family | Models |
@@ -132,7 +169,7 @@ pip install -e ".[test]"
 pytest -q
 ```
 
-132 tests. Four are parametrized across all twenty-seven models, so each must construct, refuse
+141 tests. Four are parametrized across all twenty-seven models, so each must construct, refuse
 to decide on empty market data, run on complete data, and return nothing when there are no
 positions.
 

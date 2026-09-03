@@ -157,14 +157,15 @@ class TimeBasedExitModel(ExitSignalModel):
             'max_holding_hours': max_holding_hours
         }
     
-    def check_time_exit(self, position: Position) -> Tuple[bool, float]:
+    def check_time_exit(self, position: Position,
+                        now: Optional[float] = None) -> Tuple[bool, float]:
         """
         Check if position should exit based on time
         
         Returns:
             (should_exit, holding_hours)
         """
-        holding_hours = position.get_holding_hours()
+        holding_hours = position.get_holding_hours(now)
         should_exit = holding_hours >= self.max_holding_hours
         return should_exit, holding_hours
 

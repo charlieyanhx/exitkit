@@ -35,10 +35,11 @@ class FixedTimeExitModel(TimeBasedExitModel):
                              market_data: Dict,
                              W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate fixed time exit signals"""
+        now = require(market_data, 'timestamp')
         exit_signals = []
         
         for position in open_positions:
-            should_exit, holding_hours = self.check_time_exit(position)
+            should_exit, holding_hours = self.check_time_exit(position, now)
             
             if should_exit:
                 exit_signal = SignalOutput(
@@ -86,10 +87,10 @@ class TimeDecayExitModel(TimeBasedExitModel):
         
         self.logger = logging.getLogger(__name__)
     
-    def _calculate_time_decay(self, position: Position, 
+    def _calculate_time_decay(self, position: Position,
                              market_data: Dict) -> float:
-        """Calculate time decay factor"""
-        holding_hours = position.get_holding_hours()
+        """Calculate time decay factor against the supplied clock."""
+        holding_hours = position.get_holding_hours(require(market_data, 'timestamp'))
         
         # Time decay increases with holding period
         time_decay = 1 - np.exp(-holding_hours / 24.0)  # Daily decay
@@ -100,11 +101,12 @@ class TimeDecayExitModel(TimeBasedExitModel):
                              market_data: Dict,
                              W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate time decay exit signals"""
+        now = require(market_data, 'timestamp')
         exit_signals = []
         
         for position in open_positions:
             # Check fixed time limit first
-            should_exit_time, holding_hours = self.check_time_exit(position)
+            should_exit_time, holding_hours = self.check_time_exit(position, now)
             
             # Check time decay threshold
             time_decay = self._calculate_time_decay(position, market_data)
@@ -191,12 +193,13 @@ class AdaptiveTimeExitModel(TimeBasedExitModel):
                              market_data: Dict,
                              W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate adaptive time exit signals"""
+        now = require(market_data, 'timestamp')
         exit_signals = []
         
         for position in open_positions:
             # Calculate adaptive holding period
             adaptive_holding = self._calculate_adaptive_holding_period(position, market_data)
-            holding_hours = position.get_holding_hours()
+            holding_hours = position.get_holding_hours(now)
             
             # Check if adaptive time limit exceeded
             should_exit = holding_hours >= adaptive_holding
@@ -273,11 +276,12 @@ class MarketHoursExitModel(TimeBasedExitModel):
                              market_data: Dict,
                              W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate market hours exit signals"""
+        now = require(market_data, 'timestamp')
         exit_signals = []
         current_time = require(market_data, 'timestamp')
         
         for position in open_positions:
-            should_exit_time, holding_hours = self.check_time_exit(position)
+            should_exit_time, holding_hours = self.check_time_exit(position, now)
             
             # Check market close exit
             should_exit_market_close = (self.market_close_exit and 
@@ -363,12 +367,13 @@ class PerformanceTimeExitModel(TimeBasedExitModel):
                              market_data: Dict,
                              W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate performance-based time exit signals"""
+        now = require(market_data, 'timestamp')
         exit_signals = []
         
         for position in open_positions:
             # Calculate performance-adjusted time
             adjusted_time = self._calculate_performance_adjusted_time(position)
-            holding_hours = position.get_holding_hours()
+            holding_hours = position.get_holding_hours(now)
             
             # Check if performance-adjusted time limit exceeded
             should_exit = holding_hours >= adjusted_time

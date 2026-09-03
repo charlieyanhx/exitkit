@@ -54,17 +54,21 @@ class Position:
         notional = self.entry_price * self.quantity
         return 0.0 if notional == 0 else self.current_pnl / notional
 
-    def get_holding_hours(self) -> float:
-        """Hours held, computed from entry_time.
+    def get_holding_hours(self, now: Optional[float] = None) -> float:
+        """Hours held, measured against `now` (epoch seconds).
 
-        This used to return ``holding_period / 3600``, and holding_period was
-        only ever assigned inside update_pnl(). Any exit model that did not
-        first mark the position saw zero hours held, so every time-based exit
-        was structurally unable to fire - a position held nine hours against a
-        two-hour limit simply did not exit. A derived quantity must not depend
-        on someone else's side effect.
+        Pass the simulation clock when backtesting. Omitting it measures against
+        the wall clock, which is right for live trading and wrong for a replay -
+        a backtest would otherwise age every position to the moment you happened
+        to run it.
+
+        This used to return ``holding_period / 3600``, where holding_period was
+        only ever assigned inside update_pnl(). Any model that did not first mark
+        the position saw zero hours held, so every time-based exit was
+        structurally unable to fire.
         """
-        return max(0.0, (time.time() - self.entry_time) / 3600.0)
+        reference = time.time() if now is None else now
+        return max(0.0, (reference - self.entry_time) / 3600.0)
 
 
 class WindowTensor:
