@@ -11,6 +11,12 @@ Twenty-seven exit models in six families behind one interface. Entry logic is we
 open-source backtesting libraries; exit logic usually is not — most ship one stop and one target
 and leave the rest to you.
 
+![Same entry signal, five exit policies](docs/exit_policy_comparison.png)
+
+*One entry rule (10/30 SMA crossover), five exit policies, `backtesting.py`'s sample data. The
+30-day time limit holds a 22% drawdown through 2008–09 where the others reach 65%. Regenerate it
+with [`examples/plot_exit_policies.py`](examples/plot_exit_policies.py).*
+
 ```bash
 pip install exitkit
 ```
@@ -77,9 +83,10 @@ time limit 30d           208.3      31     -22.3    0.68
 stop 5% + tp 10%         100.0      29     -28.3    0.49
 ```
 
-One dataset and one entry rule, so read it as an illustration rather than a finding — but it
-is the comparison the library exists to make cheap. Holding time is measured against the
-**bar's** clock, not the wall clock, so a replay ages positions by simulated time.
+One dataset and one entry rule, so read it as an illustration rather than a finding — but it is
+the comparison the library exists to make cheap. Holding time is measured against the **bar's**
+clock, not the wall clock, so a replay ages positions by simulated time rather than by whenever
+you happened to run it.
 
 ## The six families
 
