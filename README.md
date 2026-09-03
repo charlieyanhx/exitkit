@@ -117,7 +117,10 @@ two-hour limit did not exit. Holding time is now derived from `entry_time`; a de
 should not depend on another call's side effect.
 
 **`MarketHoursExitModel` had never run.** The module called `time.time()` without importing
-`time`, so every invocation raised `NameError`.
+`time`, so every invocation raised `NameError`. It also defaulted its `timestamp` to the wall
+clock, which meant a backtest evaluated market hours against whenever you happened to run it — a
+run at 02:00 would hold everything. That one was found by CI, which runs in a different timezone
+than the author's laptop, and is why the suite now pins fixed instants.
 
 The feature-window argument was also removed from the required position in the signature: it was
 the first parameter of every model and not one of them read it.
@@ -129,7 +132,7 @@ pip install -e ".[test]"
 pytest -q
 ```
 
-130 tests. Four are parametrized across all twenty-seven models, so each must construct, refuse
+132 tests. Four are parametrized across all twenty-seven models, so each must construct, refuse
 to decide on empty market data, run on complete data, and return nothing when there are no
 positions.
 

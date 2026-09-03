@@ -210,7 +210,7 @@ class AdaptiveTakeProfitExitModel(TakeProfitExitModel):
         vol_adjustment = 1 + (vol_ratio - 1) * self.volatility_adjustment
         
         # Momentum adjustment (based on recent price movement)
-        momentum = market_data.get('momentum', 0.0)  # Recent price momentum
+        momentum = require(market_data, 'momentum')  # Recent price momentum
         mom_adjustment = 1 + momentum * self.momentum_adjustment
         
         # Calculate adaptive take profit
@@ -248,7 +248,7 @@ class AdaptiveTakeProfitExitModel(TakeProfitExitModel):
                         'adaptive_take_profit_pct': adaptive_take_profit,
                         'base_take_profit_pct': self.base_take_profit_pct,
                         'vol_adjustment': require(market_data, 'implied_vol') / require_entry(position, 'implied_vol'),
-                        'momentum': market_data.get('momentum', 0.0),
+                        'momentum': require(market_data, 'momentum'),
                         'entry_price': position.entry_price,
                         'current_price': current_price
                     }
@@ -373,7 +373,7 @@ class MomentumTakeProfitExitModel(TakeProfitExitModel):
     def _update_momentum(self, position: Position, market_data: Dict):
         """Update momentum for position"""
         pos_id = position.position_id
-        current_momentum = market_data.get('momentum', 0.0)
+        current_momentum = require(market_data, 'momentum')
         
         if pos_id not in self.position_momentum:
             self.position_momentum[pos_id] = {

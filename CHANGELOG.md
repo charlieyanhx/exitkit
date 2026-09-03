@@ -24,6 +24,12 @@ research program with three pre-existing defects fixed.
   `entry_time`.
 - **`MarketHoursExitModel` had never run**: the module called `time.time()` with no
   `import time`, raising `NameError` on every invocation.
+- **`timestamp` fell back to the wall clock.** `MarketHoursExitModel` read
+  `market_data.get('timestamp', time.time())`, so a backtest evaluated market hours
+  against the operator's clock rather than simulated time — a run at 02:00 would hold
+  everything. Found by CI, which runs in a different timezone than the author.
+- **`momentum` fell back to `0.0`**, which is a meaningful value ("flat") rather than a
+  gap. Both fields are now required.
 
 ### Changed
 - `generate_exit_signals(positions, market_data, W_t=None)` — the feature window was

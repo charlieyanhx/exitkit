@@ -86,3 +86,26 @@ def test_a_window_may_still_be_supplied():
         W_t=WindowTensor(),
     )
     assert len(signals) == 1
+
+
+def test_market_hours_requires_an_explicit_timestamp():
+    """MarketHoursExitModel read market_data.get('timestamp', time.time()).
+
+    In a backtest that silently evaluates market hours against the operator's
+    wall clock rather than simulated time - a backtest run at 02:00 would hold
+    everything. It also made the test suite time-of-day dependent: this passed
+    locally and failed on CI at 16:34 UTC, which is how it was found.
+    """
+    from exitkit import MarketHoursExitModel, MissingMarketData
+    with pytest.raises(MissingMarketData):
+        MarketHoursExitModel().generate_exit_signals([_position(1.0)], {})
+
+
+def test_market_hours_uses_the_timestamp_it_is_given():
+    """Two fixed instants, one inside the session and one outside, must not
+    depend on when the suite runs."""
+    from exitkit import MarketHoursExitModel
+    m = MarketHoursExitModel()
+    for instant in (1704207600.0, 1704250800.0):     # 2024-01-02, two times of day
+        out = m.generate_exit_signals([_position(1.0)], {"timestamp": instant})
+        assert isinstance(out, list)

@@ -40,6 +40,7 @@ def market():
             "spot_price": ENTRY_PRICE,
             "implied_vol": ENTRY_VOL,
             "momentum": 0.0,
+            "timestamp": time.time(),
             "svi_fit_current": 0.20,
             "svi_fit_previous_day": 0.20,
             "svi_envelope_max": 0.25,

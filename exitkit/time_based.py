@@ -274,7 +274,7 @@ class MarketHoursExitModel(TimeBasedExitModel):
                              W_t: Optional[WindowTensor] = None) -> List[SignalOutput]:
         """Generate market hours exit signals"""
         exit_signals = []
-        current_time = market_data.get('timestamp', time.time())
+        current_time = require(market_data, 'timestamp')
         
         for position in open_positions:
             should_exit_time, holding_hours = self.check_time_exit(position)
